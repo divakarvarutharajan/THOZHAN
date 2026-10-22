@@ -4,158 +4,529 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#176b5b">
-  <meta name="description" content="Thozhan — your personal life dashboard">
+  <meta name="description" content="Thozhan — your personal productivity PWA">
   <link rel="manifest" href="manifest.json">
-  <title>thozhan — your daily companion</title>
+  <title>Thozhan — Personal Productivity PWA</title>
   <style>
-    :root { color-scheme: light; --green:#176b5b; --pale:#dcefe9; --bg:#f5f8f6; --ink:#17231f; --muted:#63716b; --line:#e3eae6; }
-    * { box-sizing:border-box; }
-    body { margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
-    header { background:var(--green); color:white; padding:22px 18px 28px; border-radius:0 0 26px 26px; }
-    .top { display:flex; align-items:center; justify-content:space-between; max-width:760px; margin:auto; }
-    .brand { font-weight:850; font-size:1.55rem; letter-spacing:-.04em; }
-    .tag { font-size:.82rem; opacity:.88; margin-top:3px; }
-    main { max-width:760px; margin:0 auto; padding:18px 16px 42px; }
-    h1 { font-size:1.6rem; line-height:1.2; margin:0 0 6px; }
-    .sub { color:var(--muted); margin:0 0 18px; }
-    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
-    .stat, .panel { background:white; border:1px solid var(--line); border-radius:17px; padding:15px; }
-    .stat .label { color:var(--muted); font-size:.78rem; }
-    .stat .value { font-size:1.6rem; font-weight:800; margin-top:4px; }
-    .progress-wrap { margin-top:13px; background:#e8eeeb; border-radius:999px; height:8px; overflow:hidden; }
-    #progress { height:100%; width:0%; background:var(--green); transition:width .2s; }
-    .progress-label { color:var(--muted); font-size:.8rem; margin-top:7px; }
-    .section-head { display:flex; align-items:center; justify-content:space-between; margin:25px 0 11px; }
-    h2 { font-size:1.13rem; margin:0; }
-    .small { color:var(--muted); font-size:.82rem; }
-    form { display:flex; gap:8px; }
-    input { min-width:0; flex:1; font:inherit; padding:13px 14px; border:1px solid var(--line); border-radius:13px; background:white; color:var(--ink); outline-color:var(--green); }
-    button { font:inherit; border:0; border-radius:13px; padding:12px 16px; background:var(--green); color:white; font-weight:700; cursor:pointer; }
-    .task-list { display:grid; gap:8px; margin-top:12px; }
-    .task { display:flex; align-items:center; gap:10px; background:white; border:1px solid var(--line); border-radius:14px; padding:11px 12px; }
-    .task input { flex:0 0 20px; width:20px; height:20px; accent-color:var(--green); }
-    .task-title { flex:1; overflow-wrap:anywhere; }
-    .task.done .task-title { text-decoration:line-through; color:#839089; }
-    .delete { padding:7px 10px; background:#f1f4f2; color:#4f5d56; }
-    .empty { text-align:center; padding:25px 14px; background:white; border:1px dashed #cad8d0; border-radius:15px; color:var(--muted); }
-    .footer { margin-top:24px; text-align:center; color:var(--muted); font-size:.78rem; line-height:1.5; }
-    @media(min-width:560px) { header { padding-top:28px; } main { padding-top:25px; } .stat { padding:18px; } }
-    @media(max-width:360px) { .grid { gap:6px; } .stat { padding:11px 9px; } .stat .value { font-size:1.35rem; } }
+    :root {
+      --green: #176b5b;
+      --green-hover: #125447;
+      --pale: #dcefe9;
+      --bg: #f8faf9;
+      --card-bg: #ffffff;
+      --ink: #17231f;
+      --muted: #63716b;
+      --line: #e3eae6;
+      --danger: #d93838;
+      --danger-bg: #fdf2f2;
+      --radius: 16px;
+      --shadow: 0 4px 20px rgba(23, 35, 31, 0.04);
+      --bottom-nav-height: 70px;
+    }
+    [data-theme="dark"] {
+      --green: #208772;
+      --green-hover: #176b5b;
+      --pale: #102923;
+      --bg: #111816;
+      --card-bg: #1a2421;
+      --ink: #ecf3f0;
+      --muted: #9aa8a2;
+      --line: #273631;
+      --danger: #e55353;
+      --danger-bg: #2d1a1a;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      padding-bottom: calc(var(--bottom-nav-height) + 20px);
+      transition: background 0.2s, color 0.2s;
+    }
+    header {
+      background: var(--green);
+      color: white;
+      padding: 20px 16px 24px;
+      border-radius: 0 0 24px 24px;
+      box-shadow: 0 4px 12px rgba(23, 107, 91, 0.15);
+    }
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      max-width: 760px;
+      margin: auto;
+    }
+    .brand { font-weight: 850; font-size: 1.45rem; letter-spacing: -0.03em; display: flex; align-items: center; gap: 6px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .icon-btn {
+      background: rgba(255, 255, 255, 0.15);
+      border: none;
+      color: white;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+    }
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+    .view { display: none; }
+    .view.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    h1 { font-size: 1.5rem; line-height: 1.2; margin: 0 0 4px; }
+    .sub { color: var(--muted); margin: 0 0 16px; font-size: 0.92rem; }
+    h2 { font-size: 1.1rem; margin: 0 0 12px; display: flex; align-items: center; justify-content: space-between; }
+    
+    .panel {
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    
+    .stat-card {
+      background: var(--bg);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-card .label { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.03em; }
+    .stat-card .value { font-size: 1.35rem; font-weight: 800; margin-top: 4px; color: var(--green); }
+    
+    .progress-bar-wrap { margin-top: 12px; background: var(--line); border-radius: 999px; height: 8px; overflow: hidden; }
+    .progress-bar-fill { height: 100%; width: 0%; background: var(--green); transition: width 0.3s ease; }
+    .progress-info { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
+
+    .form-group { margin-bottom: 12px; }
+    label { display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--muted); }
+    input, select, textarea {
+      width: 100%;
+      font: inherit;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--card-bg);
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--green); }
+    textarea { resize: vertical; min-height: 80px; }
+    
+    button.btn-primary {
+      width: 100%;
+      background: var(--green);
+      color: white;
+      border: none;
+      padding: 13px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: 0 4px 12px rgba(23, 107, 91, 0.2);
+    }
+    button.btn-primary:active { transform: scale(0.98); }
+
+    .quick-actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+    .action-chip {
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 6px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .action-chip span.icon { font-size: 1.3rem; }
+
+    .item-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+    .list-item {
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      box-shadow: var(--shadow);
+    }
+    .list-item.completed { opacity: 0.65; }
+    .list-item.completed .item-title { text-decoration: line-through; }
+    .item-checkbox { width: 22px; height: 22px; accent-color: var(--green); margin-top: 2px; cursor: pointer; flex-shrink: 0; }
+    .item-content { flex: 1; min-width: 0; }
+    .item-title { font-weight: 600; font-size: 0.95rem; overflow-wrap: anywhere; }
+    .item-meta { font-size: 0.78rem; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; flex-wrap: wrap; }
+    .badge { background: var(--pale); color: var(--green); padding: 2px 8px; border-radius: 6px; font-weight: 600; font-size: 0.72rem; }
+    
+    .actions-group { display: flex; gap: 6px; }
+    .icon-action-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1rem; padding: 4px; }
+    .icon-action-btn.delete:hover, .icon-action-btn.delete:active { color: var(--danger); }
+
+    .filter-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+    .filter-tab {
+      background: var(--card-bg);
+      border: 1px solid var(--line);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .filter-tab.active { background: var(--pale); color: var(--green); border-color: var(--green); }
+
+    .empty-state {
+      text-align: center;
+      padding: 32px 16px;
+      background: var(--card-bg);
+      border: 2px dashed var(--line);
+      border-radius: var(--radius);
+      color: var(--muted);
+      margin-top: 10px;
+    }
+    .empty-state .icon { font-size: 2.2rem; margin-bottom: 8px; }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--bottom-nav-height);
+      background: var(--card-bg);
+      border-top: 1px solid var(--line);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.05);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .nav-item {
+      background: none;
+      border: none;
+      color: var(--muted);
+      font-size: 0.7rem;
+      font-weight: 600;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      cursor: pointer;
+      flex: 1;
+      padding: 6px 0;
+    }
+    .nav-item span.nav-icon { font-size: 1.3rem; }
+    .nav-item.active { color: var(--green); }
+
+    .modal-backdrop {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none; align-items: center; justify-content: center;
+      z-index: 2000; padding: 16px; backdrop-filter: blur(2px);
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-content {
+      background: var(--card-bg);
+      border-radius: 20px;
+      width: 100%; max-width: 480px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      max-height: 90vh; overflow-y: auto;
+    }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .modal-header h3 { margin: 0; font-size: 1.2rem; }
+    .close-modal { background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--muted); }
+
+    #toast {
+      position: fixed;
+      bottom: calc(var(--bottom-nav-height) + 16px);
+      left: 50%; transform: translateX(-50%) translateY(100px);
+      background: var(--ink); color: var(--card-bg);
+      padding: 10px 18px; border-radius: 30px;
+      font-size: 0.85rem; font-weight: 600;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+      z-index: 3000;
+      white-space: nowrap;
+    }
+    #toast.show { transform: translateX(-50%) translateY(0); }
   </style>
 </head>
-<body>
+<body data-theme="light">
+
   <header>
-    <div class="top">
+    <div class="top-bar">
       <div>
-        <div class="brand">✦ thozhan</div>
-        <div class="tag">Your daily companion</div>
+        <div class="brand">✦ Thozhan</div>
+        <div style="font-size: 0.78rem; opacity: 0.9; margin-top: 2px;" id="headerSubtitle">Your daily life companion</div>
       </div>
-      <div aria-hidden="true" style="font-size:1.8rem">☀️</div>
+      <div class="header-right">
+        <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle Theme">🌙</button>
+      </div>
     </div>
   </header>
-  <main>
-    <h1 id="greeting">Hello, machan 👋</h1>
-    <p class="sub">A little progress, every day.</p>
 
-    <section class="panel" aria-label="Today's overview">
-      <div class="grid">
-        <div class="stat"><div class="label">To do</div><div class="value" id="pending">0</div></div>
-        <div class="stat"><div class="label">Done</div><div class="value" id="completed">0</div></div>
-        <div class="stat"><div class="label">Total</div><div class="value" id="total">0</div></div>
+  <main>
+    <!-- 1. HOME DASHBOARD -->
+    <section id="view-home" class="view active">
+      <h1 id="greetingText">Hello 👋</h1>
+      <p class="sub" id="currentDateSub">Loading date...</p>
+
+      <div class="quick-actions">
+        <div class="action-chip" onclick="switchView('tasks')">
+          <span class="icon">✅</span> Tasks
+        </div>
+        <div class="action-chip" onclick="switchView('study')">
+          <span class="icon">📚</span> Study
+        </div>
+        <div class="action-chip" onclick="switchView('habits')">
+          <span class="icon">⚡</span> Habits
+        </div>
+        <div class="action-chip" onclick="switchView('expenses')">
+          <span class="icon">💸</span> Expenses
+        </div>
       </div>
-      <div class="progress-wrap"><div id="progress"></div></div>
-      <div class="progress-label" id="progressText">0% completed</div>
+
+      <div class="panel">
+        <h2>Daily Overview <span style="font-size:0.8rem; font-weight:normal; color:var(--muted);" id="overviewDate">Today</span></h2>
+        <div class="grid-3" style="margin-bottom: 12px;">
+          <div class="stat-card">
+            <div class="label">Tasks Done</div>
+            <div class="value" id="dashTaskCount">0/0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Study Hours</div>
+            <div class="value" id="dashStudyHours">0h</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Spent Today</div>
+            <div class="value" id="dashExpenseToday">₹0</div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="dashProgressBar"></div>
+        </div>
+        <div class="progress-info">
+          <span id="dashProgressText">Daily completion: 0%</span>
+          <span id="dashHabitStreak">⚡ Habits: 0</span>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Quick Task</h2>
+        <form id="quickTaskForm" style="display:flex; gap:8px;">
+          <input type="text" id="quickTaskInput" placeholder="Add a quick task for today..." maxlength="140" required autocomplete="off">
+          <button type="submit" style="width: 80px; background:var(--green); border:none; border-radius:12px; color:white; font-weight:bold; cursor:pointer;">Add</button>
+        </form>
+      </div>
     </section>
 
-    <div class="section-head">
-      <h2>Today's tasks</h2>
-      <span class="small" id="dateLabel"></span>
-    </div>
-    <form id="taskForm">
-      <input id="taskInput" maxlength="140" placeholder="What do you want to do?" autocomplete="off" required>
-      <button type="submit" aria-label="Add task">Add</button>
-    </form>
-    <div id="taskList" class="task-list"></div>
+    <!-- 2. TASK MANAGER -->
+    <section id="view-tasks" class="view">
+      <h1>Task Manager</h1>
+      <p class="sub">Organize your daily to-dos and priorities</p>
+      
+      <div class="panel">
+        <form id="taskManagerForm">
+          <div class="form-group">
+            <label>Task Title</label>
+            <input type="text" id="taskTitle" placeholder="e.g., Complete Pharmacology revision" maxlength="140" required autocomplete="off">
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Category</label>
+              <select id="taskCategory">
+                <option value="Study">Study</option>
+                <option value="Clinical">Clinical</option>
+                <option value="Personal">Personal</option>
+                <option value="Health">Health</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Priority</label>
+              <select id="taskPriority">
+                <option value="Medium">Medium</option>
+                <option value="High">High</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Due Date</label>
+            <input type="date" id="taskDueDate">
+          </div>
+          <button type="submit" class="btn-primary">➕ Add Task</button>
+        </form>
+      </div>
 
-    <div class="footer">
-      Your tasks are saved in this browser on this device.<br>
-      This first version has no account or cloud sync. Clearing browser data may erase tasks.
-    </div>
-  </main>
-  <script>
-    const STORAGE_KEY = 'thozhan_pwa_tasks_v1';
-    const taskInput = document.getElementById('taskInput');
-    const taskList = document.getElementById('taskList');
-    let tasks = [];
+      <div class="filter-tabs" id="taskFilters">
+        <div class="filter-tab active" data-filter="all" onclick="setTaskFilter('all', event)">All Tasks</div>
+        <div class="filter-tab" data-filter="pending" onclick="setTaskFilter('pending', event)">Pending</div>
+        <div class="filter-tab" data-filter="completed" onclick="setTaskFilter('completed', event)">Completed</div>
+      </div>
 
-    function readTasks() {
-      try { tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
-      catch { tasks = []; }
-    }
-    function saveTasks() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-    }
-    function render() {
-      const completed = tasks.filter(t => t.done).length;
-      const pending = tasks.length - completed;
-      const pct = tasks.length ? Math.round(completed / tasks.length * 100) : 0;
-      document.getElementById('pending').textContent = pending;
-      document.getElementById('completed').textContent = completed;
-      document.getElementById('total').textContent = tasks.length;
-      document.getElementById('progress').style.width = pct + '%';
-      document.getElementById('progressText').textContent = pct + '% completed';
-      taskList.replaceChildren();
-      if (!tasks.length) {
-        const empty = document.createElement('div');
-        empty.className = 'empty';
-        empty.innerHTML = '<div style="font-size:1.8rem">📝</div><strong>Your list is clear.</strong><div style="margin-top:5px">Add one small task to get started.</div>';
-        taskList.append(empty);
-        return;
-      }
-      tasks.forEach(task => {
-        const row = document.createElement('div');
-        row.className = 'task' + (task.done ? ' done' : '');
-        const check = document.createElement('input');
-        check.type = 'checkbox';
-        check.checked = task.done;
-        check.setAttribute('aria-label', 'Mark task complete');
-        check.addEventListener('change', () => {
-          task.done = check.checked;
-          saveTasks(); render();
-        });
-        const title = document.createElement('span');
-        title.className = 'task-title';
-        title.textContent = task.title;
-        const del = document.createElement('button');
-        del.className = 'delete';
-        del.textContent = 'Delete';
-        del.addEventListener('click', () => {
-          tasks = tasks.filter(t => t.id !== task.id);
-          saveTasks(); render();
-        });
-        row.append(check, title, del);
-        taskList.append(row);
-      });
-    }
-    document.getElementById('taskForm').addEventListener('submit', event => {
-      event.preventDefault();
-      const title = taskInput.value.trim();
-      if (!title) return;
-      tasks.unshift({ id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())), title, done:false });
-      saveTasks(); render();
-      taskInput.value = '';
-      taskInput.focus();
-    });
-    function setGreeting() {
-      const hour = new Date().getHours();
-      document.getElementById('greeting').textContent =
-        (hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening') + ' 👋';
-      document.getElementById('dateLabel').textContent = new Date().toLocaleDateString(undefined, { month:'short', day:'numeric' });
-    }
-    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
-    }
-    readTasks(); setGreeting(); render();
-  </script>
-</body>
-</html>
+      <div id="taskManagerList" class="item-list"></div>
+    </section>
+
+    <!-- 3. STUDY TRACKER -->
+    <section id="view-study" class="view">
+      <h1>Study Tracker</h1>
+      <p class="sub">Track your study hours, sessions, and daily goals</p>
+
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+          <div>
+            <div style="font-size:0.8rem; color:var(--muted);">Today's Progress</div>
+            <div style="font-size:1.4rem; font-weight:800;" id="studyTodayTotal">0 hrs</div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:0.8rem; color:var(--muted);">Daily Target</div>
+            <div style="font-size:1.2rem; font-weight:700; color:var(--green);" id="studyTargetDisplay">6 hrs</div>
+          </div>
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" id="studyProgressBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Log Study Session</h2>
+        <form id="studyForm">
+          <div class="form-group">
+            <label>Subject / Topic</label>
+            <input type="text" id="studyTopic" placeholder="e.g., Surgery - Laparoscopy notes" required autocomplete="off">
+          </div>
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Duration (Hours)</label>
+              <input type="number" id="studyHours" step="0.5" min="0.5" max="24" value="2" required>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="studyDate" required>
+            </div>
+          </div>
+          <button type="submit" class="btn-primary">⏱️ Log Session</button>
+        </form>
+      </div>
+
+      <h2>Study Sessions</h2>
+      <div id="studyList" class="item-list"></div>
+    </section>
+
+    <!-- 4. HABIT TRACKER -->
+    <section id="view-habits" class="view">
+      <h1>Habit Tracker</h1>
+      <p class="sub">Build consistency with daily habits</p>
+
+      <div class="panel">
+        <form id="habitForm" style="display:flex; gap:8px;">
+          <input type="text" id="habitNameInput" placeholder="New habit (e.g., Skincare routine)..." maxlength="50" required autocomplete="off">
+          <button type="submit" style="width: 100px; background:var(--green); border:none; border-radius:12px; color:white; font-weight:bold; cursor:pointer;">Add Habit</button>
+        </form>
+      </div>
+
+      <div id="habitList" class="item-list"></div>
+    </section>
+
+    <!-- 5. EXPENSE TRACKER -->
+    <section id="view-expenses" class="view">
+      <h1>Expense Tracker</h1>
+      <p class="sub">Manage your budget in Indian Rupees (₹)</p>
+
+      <div class="panel">
+        <div class="grid-3" style="margin-bottom:12px;">
+          <div class="stat-card">
+            <div class="label">Today</div>
+            <div class="value" id="expToday">₹0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">This Month</div>
+            <div class="value" id="expMonth">₹0</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Budget Left</div>
+            <div class="value" id="expBudgetLeft" style="color:var(--green)">₹0</div>
+          </div>
+        </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; color:var(--muted); border-top:1px solid var(--line); margin-top:8px; padding-top:8px;">
+          <span>Monthly Budget: <strong id="budgetLimitText">₹10,000</strong></span>
+          <button onclick="openBudgetModal()" style="background:none; border:none; color:var(--green); font-weight:bold; cursor:pointer; font-size:0.85rem;">Edit Budget</button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Add Expense</h2>
+        <form id="expenseForm">
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Amount (₹)</label>
+              <input type="number" id="expAmount" step="1" min="1" placeholder="500" required>
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <select id="expCategory">
+                <option value="Food & Dining">Food & Dining</option>
+                <option value="Travel">Travel</option>
+                <option value="Utilities">Utilities</option>
+                <option value="Medical">Medical</option>
+                <option value="Personal">Personal</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <input type="text" id="expDesc" placeholder="e.g., Grocery shopping" autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" id="expDate" required>
+          </div>
+          <button type="submit" class="btn-primary">💸 Add Expense</button>
+        </form>
+      </div>
+
+      <h2>Expense History</h2>
+      <div id="expenseList" class="item-list"></div>
+    </section>
+
+    <!-- 6. NOTES -->
+    <section id="view-notes" class="view">
+      <h1>Quick Notes</h1>
+      <p class="sub">Jotted thoughts, reminders, and clinical pointers</p>
+
+      <div class="panel">
+        <form id="noteForm">
+          <div class="form-group">
+            <label>Title</label>
+            <input type="text" id="noteTitle" placeholder="Note title..." required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label>Content</label>
+            <textarea id="noteContent" placeholder="Write yo
