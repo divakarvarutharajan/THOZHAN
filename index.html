@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -286,7 +287,7 @@
         <div style="font-size: 0.78rem; opacity: 0.9; margin-top: 2px;" id="headerSubtitle">Your daily life companion</div>
       </div>
       <div class="header-right">
-        <button class="icon-btn" id="themeToggleBtn" onclick="toggleTheme()" aria-label="Toggle Theme">🌙</button>
+        <button class="icon-btn" id="themeToggleBtn" aria-label="Toggle Theme">🌙</button>
       </div>
     </div>
   </header>
@@ -298,16 +299,16 @@
       <p class="sub" id="currentDateSub">Loading date...</p>
 
       <div class="quick-actions">
-        <div class="action-chip" onclick="switchView('tasks')">
+        <div class="action-chip" data-target="tasks">
           <span class="icon">✅</span> Tasks
         </div>
-        <div class="action-chip" onclick="switchView('study')">
+        <div class="action-chip" data-target="study">
           <span class="icon">📚</span> Study
         </div>
-        <div class="action-chip" onclick="switchView('habits')">
+        <div class="action-chip" data-target="habits">
           <span class="icon">⚡</span> Habits
         </div>
-        <div class="action-chip" onclick="switchView('expenses')">
+        <div class="action-chip" data-target="expenses">
           <span class="icon">💸</span> Expenses
         </div>
       </div>
@@ -385,9 +386,9 @@
       </div>
 
       <div class="filter-tabs" id="taskFilters">
-        <div class="filter-tab active" data-filter="all" onclick="setTaskFilter('all', event)">All Tasks</div>
-        <div class="filter-tab" data-filter="pending" onclick="setTaskFilter('pending', event)">Pending</div>
-        <div class="filter-tab" data-filter="completed" onclick="setTaskFilter('completed', event)">Completed</div>
+        <div class="filter-tab active" data-filter="all">All Tasks</div>
+        <div class="filter-tab" data-filter="pending">Pending</div>
+        <div class="filter-tab" data-filter="completed">Completed</div>
       </div>
 
       <div id="taskManagerList" class="item-list"></div>
@@ -476,7 +477,7 @@
         </div>
         <div style="display:flex; justify-content:space-between; align-items:center; font-size:0.85rem; color:var(--muted); border-top:1px solid var(--line); margin-top:8px; padding-top:8px;">
           <span>Monthly Budget: <strong id="budgetLimitText">₹10,000</strong></span>
-          <button onclick="openBudgetModal()" style="background:none; border:none; color:var(--green); font-weight:bold; cursor:pointer; font-size:0.85rem;">Edit Budget</button>
+          <button id="editBudgetBtn" style="background:none; border:none; color:var(--green); font-weight:bold; cursor:pointer; font-size:0.85rem;">Edit Budget</button>
         </div>
       </div>
 
@@ -529,4 +530,11 @@
           </div>
           <div class="form-group">
             <label>Content</label>
-            <textarea id="noteContent" placeholder="Write yo
+            <textarea id="noteContent" placeholder="Write your note here..." required></textarea>
+          </div>
+          <button type="submit" class="btn-primary">📝 Save Note</button>
+        </form>
+      </div>
+
+      <div class="form-group">
+       
