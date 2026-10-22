@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#176b5b">
+  <meta name="description" content="Thozhan — your personal life dashboard">
+  <link rel="manifest" href="manifest.json">
+  <title>thozhan — your daily companion</title>
+  <style>
+    :root { color-scheme: light; --green:#176b5b; --pale:#dcefe9; --bg:#f5f8f6; --ink:#17231f; --muted:#63716b; --line:#e3eae6; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); }
+    header { background:var(--green); color:white; padding:22px 18px 28px; border-radius:0 0 26px 26px; }
+    .top { display:flex; align-items:center; justify-content:space-between; max-width:760px; margin:auto; }
+    .brand { font-weight:850; font-size:1.55rem; letter-spacing:-.04em; }
+    .tag { font-size:.82rem; opacity:.88; margin-top:3px; }
+    main { max-width:760px; margin:0 auto; padding:18px 16px 42px; }
+    h1 { font-size:1.6rem; line-height:1.2; margin:0 0 6px; }
+    .sub { color:var(--muted); margin:0 0 18px; }
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
+    .stat, .panel { background:white; border:1px solid var(--line); border-radius:17px; padding:15px; }
+    .stat .label { color:var(--muted); font-size:.78rem; }
+    .stat .value { font-size:1.6rem; font-weight:800; margin-top:4px; }
+    .progress-wrap { margin-top:13px; background:#e8eeeb; border-radius:999px; height:8px; overflow:hidden; }
+    #progress { height:100%; width:0%; background:var(--green); transition:width .2s; }
+    .progress-label { color:var(--muted); font-size:.8rem; margin-top:7px; }
+    .section-head { display:flex; align-items:center; justify-content:space-between; margin:25px 0 11px; }
+    h2 { font-size:1.13rem; margin:0; }
+    .small { color:var(--muted); font-size:.82rem; }
+    form { display:flex; gap:8px; }
+    input { min-width:0; flex:1; font:inherit; padding:13px 14px; border:1px solid var(--line); border-radius:13px; background:white; color:var(--ink); outline-color:var(--green); }
+    button { font:inherit; border:0; border-radius:13px; padding:12px 16px; background:var(--green); color:white; font-weight:700; cursor:pointer; }
+    .task-list { display:grid; gap:8px; margin-top:12px; }
+    .task { display:flex; align-items:center; gap:10px; background:white; border:1px solid var(--line); border-radius:14px; padding:11px 12px; }
+    .task input { flex:0 0 20px; width:20px; height:20px; accent-color:var(--green); }
+    .task-title { flex:1; overflow-wrap:anywhere; }
+    .task.done .task-title { text-decoration:line-through; color:#839089; }
+    .delete { padding:7px 10px; background:#f1f4f2; color:#4f5d56; }
+    .empty { text-align:center; padding:25px 14px; background:white; border:1px dashed #cad8d0; border-radius:15px; color:var(--muted); }
+    .footer { margin-top:24px; text-align:center; color:var(--muted); font-size:.78rem; line-height:1.5; }
+    @media(min-width:560px) { header { padding-top:28px; } main { padding-top:25px; } .stat { padding:18px; } }
+    @media(max-width:360px) { .grid { gap:6px; } .stat { padding:11px 9px; } .stat .value { font-size:1.35rem; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="top">
+      <div>
+        <div class="brand">✦ thozhan</div>
+        <div class="tag">Your daily companion</div>
+      </div>
+      <div aria-hidden="true" style="font-size:1.8rem">☀️</div>
+    </div>
+  </header>
+  <main>
+    <h1 id="greeting">Hello, machan 👋</h1>
+    <p class="sub">A little progress, every day.</p>
+
+    <section class="panel" aria-label="Today's overview">
+      <div class="grid">
+        <div class="stat"><div class="label">To do</div><div class="value" id="pending">0</div></div>
+        <div class="stat"><div class="label">Done</div><div class="value" id="completed">0</div></div>
+        <div class="stat"><div class="label">Total</div><div class="value" id="total">0</div></div>
+      </div>
+      <div class="progress-wrap"><div id="progress"></div></div>
+      <div class="progress-label" id="progressText">0% completed</div>
+    </section>
+
+    <div class="section-head">
+      <h2>Today's tasks</h2>
+      <span class="small" id="dateLabel"></span>
+    </div>
+    <form id="taskForm">
+      <input id="taskInput" maxlength="140" placeholder="What do you want to do?" autocomplete="off" required>
+      <button type="submit" aria-label="Add task">Add</button>
+    </form>
+    <div id="taskList" class="task-list"></div>
+
+    <div class="footer">
+      Your tasks are saved in this browser on this device.<br>
+      This first version has no account or cloud sync. Clearing browser data may erase tasks.
+    </div>
+  </main>
+  <script>
+    const STORAGE_KEY = 'thozhan_pwa_tasks_v1';
+    const taskInput = document.getElementById('taskInput');
+    const taskList = document.getElementById('taskList');
+    let tasks = [];
+
+    function readTasks() {
+      try { tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); }
+      catch { tasks = []; }
+    }
+    function saveTasks() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+    function render() {
+      const completed = tasks.filter(t => t.done).length;
+      const pending = tasks.length - completed;
+      const pct = tasks.length ? Math.round(completed / tasks.length * 100) : 0;
+      document.getElementById('pending').textContent = pending;
+      document.getElementById('completed').textContent = completed;
+      document.getElementById('total').textContent = tasks.length;
+      document.getElementById('progress').style.width = pct + '%';
+      document.getElementById('progressText').textContent = pct + '% completed';
+      taskList.replaceChildren();
+      if (!tasks.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty';
+        empty.innerHTML = '<div style="font-size:1.8rem">📝</div><strong>Your list is clear.</strong><div style="margin-top:5px">Add one small task to get started.</div>';
+        taskList.append(empty);
+        return;
+      }
+      tasks.forEach(task => {
+        const row = document.createElement('div');
+        row.className = 'task' + (task.done ? ' done' : '');
+        const check = document.createElement('input');
+        check.type = 'checkbox';
+        check.checked = task.done;
+        check.setAttribute('aria-label', 'Mark task complete');
+        check.addEventListener('change', () => {
+          task.done = check.checked;
+          saveTasks(); render();
+        });
+        const title = document.createElement('span');
+        title.className = 'task-title';
+        title.textContent = task.title;
+        const del = document.createElement('button');
+        del.className = 'delete';
+        del.textContent = 'Delete';
+        del.addEventListener('click', () => {
+          tasks = tasks.filter(t => t.id !== task.id);
+          saveTasks(); render();
+        });
+        row.append(check, title, del);
+        taskList.append(row);
+      });
+    }
+    document.getElementById('taskForm').addEventListener('submit', event => {
+      event.preventDefault();
+      const title = taskInput.value.trim();
+      if (!title) return;
+      tasks.unshift({ id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random())), title, done:false });
+      saveTasks(); render();
+      taskInput.value = '';
+      taskInput.focus();
+    });
+    function setGreeting() {
+      const hour = new Date().getHours();
+      document.getElementById('greeting').textContent =
+        (hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening') + ' 👋';
+      document.getElementById('dateLabel').textContent = new Date().toLocaleDateString(undefined, { month:'short', day:'numeric' });
+    }
+    if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+    }
+    readTasks(); setGreeting(); render();
+  </script>
+</body>
+</html>
